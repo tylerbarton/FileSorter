@@ -12,27 +12,58 @@ Options:
     -r, --revert            Revert previous file movements
     -h, --help              Display this help text.
 """
-
+import sys
 import os
 import argparse
+import mutagen
+import shutil
 
+class InvalidFileException(Exception):
+    """Special file located"""
+    pass
 
 class Organizer(object):
     # cur_dir, target_dir, parent_dir, display_run, verbose
 
     def __init__(self):
-        self.cur_dir = os.getcwd()  # os.listdir(self.path)
-        self.home_dir = os.path.expanduser('~')
+        if args.src_dir is None:
+            args.src_dir = os.getcwd()
+        if args.dst_dir is None:
+            args.dst_dir = os.getcwd()
 
     def organize(self):
-        print("Current Path:" + os.getcwd())
-        print("Options:" + args.__str__())
+        """
+        Organize the files into
+        :return: True if successful
+        """
+        if args.verbose:
+            print("Options:" + args.__str__())
+
+        # Try to do singles
+
+        file_list = os.listdir(args.src_dir)
+        dir_length = len(file_list)
+        for filename in file_list:
+            file_path = args.src_dir + "\\" + filename
+            if os.path.isdir(file_path):
+                print("dir: " + file_path)
+            elif os.path.isfile(file_path):
+                print("file: " + file_path)
+            else:
+                raise InvalidFileException("Invalid file found: " + file_path)
+
+    def make_directories(self):
+        """
+        Makes directory if it does not exist.
+        :return: True if successful
+        """
+
 
 
 def dir_path(string):
     """
-    :param string: Path
-    :return: true if the path is valid.
+    :param string: Directory
+    :return: true if the directory is valid.
     """
     if os.path.isdir(string):
         return string
@@ -43,10 +74,10 @@ def dir_path(string):
 if __name__ == '__main__':
     # Commandline args
     parser = argparse.ArgumentParser()
-    parser.add_argument('-path', type=dir_path, help='targeted directory', metavar='path')
+    parser.add_argument('-path', '-src', '--src_dir', type=dir_path, help='source directory', metavar='src_dir')
     parser.add_argument('-d', '--display-only', action='store_true', help='does not execute changes')
-    parser.add_argument('-o',  default=os.getcwd(), type=dir_path,
-                        help='output directory for the files', metavar='output_dir')
+    parser.add_argument('-o', '--dst_dir',  default=os.getcwd(), type=dir_path,
+                        help='destination directory for the files', metavar='dst_dir')
     parser.add_argument('-r', '--revert', help='restore files before last change was made',metavar='revert')
     parser.add_argument('-v', '--verbose', metavar='verbose')
     args = parser.parse_args()
