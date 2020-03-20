@@ -16,6 +16,8 @@ import sys
 import os
 import argparse
 import mutagen
+from mutagen.easyid3 import EasyID3
+from mutagen.flac import FLAC
 import shutil
 
 class InvalidFileException(Exception):
@@ -45,10 +47,30 @@ class Organizer(object):
         dir_length = len(file_list)
         for filename in file_list:
             file_path = args.src_dir + "\\" + filename
+            # Goal: %artist%/Singles|Albums/File
             if os.path.isdir(file_path):
+                # TODO: keep directory name
                 print("dir: " + file_path)
+                # TODO: count the amount of files in here: 1, 2 or same name => single
+
             elif os.path.isfile(file_path):
-                print("file: " + file_path)
+                #print("file: " + file_path)
+                audio = mutagen.File(file_path)
+
+                # print(audio['artist'])
+
+                if str.endswith(file_path, ".mp3"):
+                    # MP3
+                    audio = EasyID3(file_path)
+                    print(audio.valid_keys.keys())
+
+                    # album, artist, albumartist, tracknumber
+
+                if str.endswith(file_path, ".flac"):
+                    # FLAC
+                    audio = FLAC(file_path)
+                    print(audio["title"])
+
             else:
                 raise InvalidFileException("Invalid file found: " + file_path)
 
